@@ -105,3 +105,4 @@ sam local start-api --env-vars env.json
 curl -X POST http://localhost:3000/orders \
   -H "Content-Type: application/json" \
   -d '{"Product":"Notebook Dell XPS","Quantity":2}'
+```
