@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: >
+  Order Processing API - Asynchronous order processing system with SAM, API Gateway, SQS, Lambda and DynamoDB
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: dotnet10
+    Architectures:
+      - x86_64
+
+Resources:
+
+  OrdersQueueDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: orders-queue-dlq
+      MessageRetentionPeriod: 1209600
+  
+  OrdersQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: orders-queue
+      VisibilityTimeout: 60
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt OrdersQueueDlq.Arn
+        maxReceiveCount: 3
+      
+
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: orders
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: orderId
+          AttributeType: S
+      KeySchema: 
+        - AttributeName: orderId
+          KeyType: HASH
+
+  ProducerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri:  src/Producer/
+      Handler: Producer::Producer.Function::FunctionHandler
+      Events:
+        OrderProcessingAPI:
+          Type: Api
+          Properties:
+            Path: /orders
+            Method: post
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt OrdersQueue.QueueName
+      Environment:
+        Variables:
+          ORDERS_QUEUE_URL: !Ref OrdersQueue
+    
+
+  ConsumerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri:  src/Consumer/
+      Handler: Consumer::Consumer.Function::FunctionHandler
+      Events:
+        SQSTrigger:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt OrdersQueue.Arn
+            BatchSize: 1
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrdersTable
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt OrdersQueueDlq.QueueName
+      Environment:
+        Variables:
+            ORDERS_TABLE: !Ref OrdersTable
+            ORDERS_QUEUE_DLQ_URL: !Ref OrdersQueueDlq
