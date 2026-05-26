@@ -8,7 +8,7 @@ O **OrderProcessingAPI** é um microsserviço serverless de alta performance pro
 
 O sistema adota o padrão **API → Queue → Worker**, separando a camada de ingestão de requisições (síncrona e de baixa latência) da camada de processamento de regras de negócio (assíncrona).
 
-
+```
 Cliente HTTP
 │
 │ POST /orders { "Product": "...", "Quantity": N }
@@ -38,7 +38,7 @@ Cliente HTTP
 ┌──────────────────────────┐
 │   OrdersTable (DynamoDB) │ ──► Persistência NoSQL (Modelo Pay-Per-Request)
 └──────────────────────────┘
-
+```
 ### 🛡️ Engenharia de Resiliência e Tratamento de Erros
 
 O ciclo de vida das mensagens foi desenhado para mitigar falhas sem degradação do ecossistema:
@@ -54,7 +54,7 @@ O ciclo de vida das mensagens foi desenhado para mitigar falhas sem degradação
 * **Infraestrutura como Código (IaC):** AWS SAM / CloudFormation.
 
 ### Estrutura do Projeto
-
+```
 OrderProcessingAPI/
 ├── OrderProcessingAPI.sln          # Solution clássica (.NET)
 ├── template.yaml                   # Infraestrutura como Código (SAM)
@@ -68,7 +68,7 @@ OrderProcessingAPI/
 │   └── Consumer/                   # Handler Lambda do Consumidor da Fila
 │
 └── events/                         # Payloads JSON de teste local
-
+```
 ---
 
 ## 💻 Desenvolvimento Local e Testes
