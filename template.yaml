@@ -58,6 +58,30 @@ Resources:
       Environment:
         Variables:
           ORDERS_QUEUE_URL: !Ref OrdersQueue
+  
+  ReaderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri:  src/Reader/
+      Handler: Reader::Reader.Function::FunctionHandler
+      Events:
+        GetOrderById:
+          Type: Api
+          Properties:
+            Path: /orders/{orderId}
+            Method: get
+
+        ListOrders:
+          Type: Api
+          Properties:
+            Path: /orders
+            Method: get
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref OrdersTable
+      Environment:
+        Variables:
+          ORDERS_TABLE: !Ref OrdersTable
     
 
   ConsumerFunction:
