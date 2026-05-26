@@ -397,6 +397,16 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 
+# Claude Builds
+.claude/
+
+# AWS SAM build artifacts
+.aws-sam/
+
+#Env artifacts
+env.json
+env.local.json
+
 ### VisualStudio Patch ###
 # By default, sensitive information, such as encrypted password
 # should be stored in the .pubxml.user file.
